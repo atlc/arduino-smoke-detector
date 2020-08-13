@@ -30,10 +30,14 @@ void setup(){
     for(;;); // Don't proceed, loop forever
   }
   screen.setTextColor(WHITE);
-  screen.setTextSize(1);
+
+  // Warmup time should be ~10 minutes (600s) in production, but is 5 seconds for debug purposes
+  timeout(5, "Warming up");
 }
 
 void loop(){
+  check_for_snooze();
+
   LPG = mq2.readLPG();
   CO = mq2.readCO(); 
   Smoke = mq2.readSmoke();
@@ -44,28 +48,32 @@ void loop(){
   screen.println(sensor_output);
   screen.display();
   delay(150);
-  silence();
 }
 
-void silence(){
+void check_for_snooze(){
   is_silenced = digitalRead(SILENCE_PIN);
 
   if (is_silenced == 1) {
-    for (int i=180;i>0;i--) {
-      delay(1000);
-      screen.clearDisplay();
-      screen.setCursor(0,0);
-      screen.setTextSize(4);
-      screen.println(String("T-" + String(i)));
-      screen.display();
-    }
+    timeout(180, "Asleep for");
   }
   screen.setTextSize(1);
 }
 
+void timeout(int duration, String message) {
+  for (int i=duration;i>0;i--) {
+      delay(1000);
+      screen.clearDisplay();
+      screen.setCursor(0,0);
+      screen.setTextSize(2);
+      screen.println(String(message + "\n   T-" + String(i)));
+      screen.display();
+    }
+}
+
 // Alternate Wail (Chicago Siren) frequency map
-// Plotting each interval as a range, where each range is an array of 
-/*  [(ms, hZ), (ms1, hZ1)]
+// Plotting each interval as a range, where each range is an array of a start time & frequency pair, and a stop time & frequency pair.
+//    [(ms_0, hZ_0), (ms_1, hZ_1)]
+/*  
  *   {
  *    [(000, 510), (438, 610)],
  *    [(438, 720), (1091, 1020)],
@@ -78,5 +86,4 @@ void silence(){
  *    [(5000, 560), (5640, 510)],
  *   }
  * 
- * /
  */

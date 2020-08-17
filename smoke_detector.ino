@@ -18,6 +18,9 @@ Adafruit_SSD1306 screen(OLED_WIDTH, OLED_HEIGHT, &Wire);
 #define SILENCE_PIN 2
 int is_silenced = 0;
 
+#define CO_THRESHHOLD 10
+#define SMOKE_THRESHHOLD 1000
+#define LPG_THRESHHOLD 2000
 
 void setup(){
   Serial.begin(9600);
@@ -36,11 +39,14 @@ void setup(){
 }
 
 void loop(){
-  check_for_snooze();
 
   LPG = mq2.readLPG();
   CO = mq2.readCO(); 
   Smoke = mq2.readSmoke();
+
+  alert(LPG, CO, Smoke);
+  check_for_snooze();
+
   sensor_output = String("[ Gas ]  [ PPM ]\nCO:      " + String(CO) + " ppm\nSmoke:   " + String(Smoke) + " ppm\nLPG:     " + String(LPG) + " ppm");
   
   screen.clearDisplay();
@@ -48,6 +54,12 @@ void loop(){
   screen.println(sensor_output);
   screen.display();
   delay(150);
+}
+
+void alert(int LPG, int CO, int SMOKE) {
+  if (LPG >= LPG_THRESHHOLD || CO >= CO_THRESHHOLD || SMOKE >= SMOKE_THRESHHOLD) {
+    Serial.println("BEEEP BEEEP BEEEP BEEEEEEEPPPP");
+  }
 }
 
 void check_for_snooze(){
@@ -84,6 +96,8 @@ void timeout(int duration, String message) {
  *    [(3690, 650), (4342, 600)],
  *    [(4342, 720), (5000, 670)],
  *    [(5000, 560), (5640, 510)],
+ *    [(5640, 620), (6287, 570)],
+ *    [(6287, 480), (6939, 450)],
  *   }
  * 
  */

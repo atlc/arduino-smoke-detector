@@ -22,6 +22,10 @@ int is_silenced = 0;
 #define SMOKE_THRESHHOLD 1000
 #define LPG_THRESHHOLD 2000
 
+#define PIEZO_PIN 8
+// Rough approximation of the average frequency of the first few notes at the beginning or end of an interval in the "Alternating Wail", also known as the Chicago Siren
+int frequencies[] = { 510, 610, 720, 1020, 900, 850, 1000, 900, 750, 700, 830, 780, 650, 600, 720, 670, 560, 510, 620, 570, 480, 450 };
+
 void setup(){
   Serial.begin(9600);
   mq2.begin();
@@ -34,8 +38,8 @@ void setup(){
   }
   screen.setTextColor(WHITE);
 
-  // Warmup time should be ~10 minutes (600s) in production, but is 5 seconds for debug purposes
-  timeout(5, "Warming up");
+  // Warmup time should be ~15 minutes (900s) in production, but is 5 seconds for debug purposes
+  timeout(900, "Warming up");
 }
 
 void loop(){
@@ -58,7 +62,13 @@ void loop(){
 
 void alert(int LPG, int CO, int SMOKE) {
   if (LPG >= LPG_THRESHHOLD || CO >= CO_THRESHHOLD || SMOKE >= SMOKE_THRESHHOLD) {
-    Serial.println("BEEEP BEEEP BEEEP BEEEEEEEPPPP");
+//    Serial.println("BEEEP BEEEP BEEEP BEEEEEEEPPPP");
+    for (int i=0; i < sizeof(frequencies); i++) {
+      tone(PIEZO_PIN, frequencies[i], 350);
+      delay(500);
+      check_for_snooze();
+      noTone(PIEZO_PIN);
+    }
   }
 }
 
@@ -81,23 +91,3 @@ void timeout(int duration, String message) {
       screen.display();
     }
 }
-
-// Alternate Wail (Chicago Siren) frequency map
-// Plotting each interval as a range, where each range is an array of a start time & frequency pair, and a stop time & frequency pair.
-//    [(ms_0, hZ_0), (ms_1, hZ_1)]
-/*  
- *   {
- *    [(000, 510), (438, 610)],
- *    [(438, 720), (1091, 1020)],
- *    [(1091, 900), (1738, 850)],
- *    [(1738, 1000), (2390, 900)],
- *    [(2390, 750), (3040, 700)],
- *    [(3040, 830), (3690, 780)],
- *    [(3690, 650), (4342, 600)],
- *    [(4342, 720), (5000, 670)],
- *    [(5000, 560), (5640, 510)],
- *    [(5640, 620), (6287, 570)],
- *    [(6287, 480), (6939, 450)],
- *   }
- * 
- */

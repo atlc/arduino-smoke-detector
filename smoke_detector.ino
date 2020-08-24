@@ -39,19 +39,23 @@ void setup(){
   screen.setTextColor(WHITE);
 
   // Warmup time should be ~15 minutes (900s) in production, but is 5 seconds for debug purposes
-  timeout(900, "Warming up");
+  timeout(3, "Srch Ghsts");
 }
 
 void loop(){
 
-  LPG = mq2.readLPG();
-  CO = mq2.readCO(); 
-  Smoke = mq2.readSmoke();
+//  LPG = mq2.readLPG();
+//  CO = mq2.readCO(); 
+//  Smoke = mq2.readSmoke();
 
-  alert(LPG, CO, Smoke);
+  LPG = analogRead(0);
+  CO = analogRead(1);
+  Smoke = analogRead(3);
+
+//  alert(LPG, CO, Smoke);
   check_for_snooze();
 
-  sensor_output = String("[ Gas ]  [ PPM ]\nCO:      " + String(CO) + " ppm\nSmoke:   " + String(Smoke) + " ppm\nLPG:     " + String(LPG) + " ppm");
+  sensor_output = String("[ Sensor ] [ Trace ]\nEctoplasm: " + String(CO) + " ppm\nLIDAR:     " + String(Smoke) + " ppm\nEVP:       " + String(LPG) + " ppm");
   
   screen.clearDisplay();
   screen.setCursor(0,0);
